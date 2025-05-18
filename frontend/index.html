@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>AI Chat Portal</title>
+    <script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script crossorigin src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <style>
+      body { font-family: sans-serif; margin: 2em; }
+      #chat { border: 1px solid #ccc; padding: 1em; height: 300px; overflow-y: scroll; }
+      #chat div { margin-bottom: .5em; }
+    </style>
+  </head>
+  <body>
+    <h1>AI Chat Portal</h1>
+    <div id="chat"></div>
+    <div>
+      <select id="model-select">
+        <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+        <option value="gpt-4">gpt-4</option>
+      </select>
+      <input id="message" type="text" placeholder="Enter message" />
+      <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <script type="text/babel">
+      const chatEl = document.getElementById('chat');
+      const messageEl = document.getElementById('message');
+      const modelEl = document.getElementById('model-select');
+      let messages = [];
+
+      function appendMessage(role, content) {
+        const div = document.createElement('div');
+        div.textContent = `${role}: ${content}`;
+        chatEl.appendChild(div);
+        chatEl.scrollTop = chatEl.scrollHeight;
+      }
+
+      async function sendMessage() {
+        const content = messageEl.value;
+        if (!content) return;
+        messages.push({ role: 'user', content });
+        appendMessage('user', content);
+        messageEl.value = '';
+        const response = await fetch('/api/chat/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages, model: modelEl.value })
+        });
+        const data = await response.json();
+        messages.push(data);
+        appendMessage('assistant', data.content || JSON.stringify(data));
+      }
+    </script>
+  </body>
+</html>
